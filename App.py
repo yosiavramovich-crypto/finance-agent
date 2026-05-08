@@ -44,3 +44,50 @@ st.line_chart(monthly)
 st.subheader("💰 חיסכון חודשי")
 monthly["Savings"] = monthly.get("income", 0) - monthly.get("expense", 0)
 st.line_chart(monthly["Savings"])
+def parse_pdf_with_ai(uploaded_file):
+
+    text = ""
+
+    # קריאת PDF
+    with pdfplumber.open(uploaded_file) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() + "\n"
+
+    # קריאה ל‑AI
+    client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+    prompt = f"""
+    Extract all bank transactions from this text:
+
+    {text}
+
+    Return JSON only:
+
+    {{
+      "transactions": [
+        {{
+          "date": "YYYY-MM-DD",
+          "description": "text",
+          "amount": number,
+          "type": "income or expense"
+        }}
+      ],
+      "balance": {{
+        "date": "YYYY-MM-DD",
+        "amount": number
+      }}
+    }}
+
+    Rules:
+    זכות = income
+    חובה = expense
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    result = response.choices[0].message.content
+
+    return json.loads(result)
