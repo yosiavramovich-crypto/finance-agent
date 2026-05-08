@@ -45,6 +45,14 @@ st.subheader("💰 חיסכון חודשי")
 monthly["Savings"] = monthly.get("income", 0) - monthly.get("expense", 0)
 st.line_chart(monthly["Savings"])
 def parse_pdf_with_ai(uploaded_file):
+uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+
+if uploaded_file and st.button("Process"):
+
+    data = parse_pdf_with_ai(uploaded_file)
+
+    transactions = data["transactions"]
+    balance = data["balance"]
 
     text = ""
 
